@@ -5,17 +5,26 @@ ifndef srpm
 	srpm := $(outdir)/*.src.rpm
 endif
 MOCK_SRPM := $(srpm)
+ifndef spec
+	spec := ./sources
+endif
+MOCK_SOURCESDIR := $(spec)
 
 fetch:
-	spectool -g -C ./sources ./sources/opentx-companion-2.2.1.spec
+	spectool -g -C $(MOCK_SOURCESDIR) $(MOCK_SOURCESDIR)/opentx-companion-2.2.1.spec
 
 srpm:
-	mock --buildsrpm --spec ./sources/opentx-companion-2.2.1.spec --sources ./sources --resultdir=$(MOCK_RESULT_DIR)
+	mock --buildsrpm --spec $(MOCK_SOURCESDIR)/opentx-companion-2.2.1.spec --sources $(MOCK_SOURCESDIR) --resultdir=$(MOCK_RESULT_DIR)
 
 rpm: srpm
 	mock --rebuild --resultdir=$(MOCK_RESULT_DIR) $(MOCK_SRPM)
 
 clean:
-	rm -rf results sources/opentx-b55b68f.tar.gz
+	rm -rf $(MOCK_RESULT_DIR)
+
+distclean:
+	rm -rf $(MOCK_SOURCESDIR)/opentx-b55b68f.tar.gz
+
+cleanall: clean distclean
 
 all: rpm
