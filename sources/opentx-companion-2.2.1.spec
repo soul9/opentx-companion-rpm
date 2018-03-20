@@ -37,7 +37,7 @@ settings, editing settings and running radio simulators.
 rm -rf build-taranis-debug
 mkdir build-taranis-debug
 cd build-taranis-debug
-%cmake -DPCB=X9D+ -DGVARS=YES -DLUA=YES -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS:BOOL=OFF ../
+%cmake -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DPCB=X9D+ -DGVARS=YES -DLUA=YES -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS:BOOL=OFF ../
 make %{?_smp_mflags} opentx-companion
 make %{?_smp_mflags} opentx-simulator
 
