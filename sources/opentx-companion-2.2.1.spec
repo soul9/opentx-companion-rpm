@@ -26,7 +26,7 @@ Requires: dfu-util
 %description
 OpenTX Companion transmitter support software is used for many different
 tasks like loading OpenTX firmware to the radio, backing up model
-settings, editing settings and running radio simulators. 
+settings, editing settings and running radio simulators.
 
 %prep
 %setup -n opentx-%{commit0}
@@ -54,7 +54,10 @@ make -C build-taranis-debug install DESTDIR=%{buildroot}
 %{_datadir}/icons/hicolor/*
 
 %changelog
-* Sun Aug 20 2017 Jan Pazdziora <jpx-opentx@adelton.com> - 2.2.1-*
+* Tue Mar 20 2018 J <j@roxor.me> - 2.2.1-3
+- update to upstream 2.2.1 tag
+
+* Sun Aug 20 2017 Jan Pazdziora <jpx-opentx@adelton.com> - 2.2.1-2
 - Rebase to 2.2 master.
 
 * Sat Aug 19 2017 Jan Pazdziora <jpx-opentx@adelton.com> - 2.2.0-1
