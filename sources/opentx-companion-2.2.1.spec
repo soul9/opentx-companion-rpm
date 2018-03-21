@@ -6,7 +6,7 @@ Name: opentx-companion
 %global CMAKE_OPTS -DSIMULATOR_INSTALL_PREFIX=/usr -DFIRMWARE_TARGET=NO -DGVARS=YES -DHELI=YES -DALLOW_NIGHTLY_BUILDS=NO -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DVERSION_SUFFIX= -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS:BOOL=OFF
 
 Version: 2.2.1
-Release: git_%{shortcommit0}.4%{?dist}
+Release: git_%{shortcommit0}.5%{?dist}
 License: GPLv2
 URL: http://www.open-tx.org
 Source0: https://github.com/opentx/opentx/archive/%{commit0}.tar.gz#/opentx-%{shortcommit0}.tar.gz
@@ -17,8 +17,6 @@ BuildRequires: gcc-c++
 BuildRequires: qt5-devel
 BuildRequires: fox-devel
 BuildRequires: SDL-devel
-BuildRequires: arm-none-eabi-gcc-cs-c++
-BuildRequires: arm-none-eabi-newlib
 BuildRequires: python3-qt5
 Requires: dfu-util
 
@@ -60,6 +58,9 @@ cd build
 %{_datadir}/icons/hicolor/*
 
 %changelog
+* Tue Mar 21 2018 J <j@roxor.me> - 2.2.1-4
+- remove dependency on arm toolchain
+
 * Tue Mar 20 2018 J <j@roxor.me> - 2.2.1-4
 - do not use custom cmake macro, just override BUILD_SHARED_LIBS:BOOL=OFF
 
