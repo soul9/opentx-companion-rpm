@@ -1,17 +1,35 @@
-
 Summary: OpenTX Companion
 Name: opentx-companion
 
 %global commit0 b55b68f191cfa22dee396ee2842e9fb836d9664f
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global CMAKE_OPTS -DSIMULATOR_INSTALL_PREFIX=/usr -DFIRMWARE_TARGET=NO -DGVARS=YES -DHELI=YES -DALLOW_NIGHTLY_BUILDS=NO -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DVERSION_SUFFIX= -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug
+%global mycmake \
+  CFLAGS="${CFLAGS:-%optflags}" ; export CFLAGS ; \
+  CXXFLAGS="${CXXFLAGS:-%optflags}" ; export CXXFLAGS ; \
+  FFLAGS="${FFLAGS:-%optflags%{?_fmoddir: -I%_fmoddir}}" ; export FFLAGS ; \
+  FCFLAGS="${FCFLAGS:-%optflags%{?_fmoddir: -I%_fmoddir}}" ; export FCFLAGS ; \
+  %{?__global_ldflags:LDFLAGS="${LDFLAGS:-%__global_ldflags}" ; export LDFLAGS ;} \
+  %__cmake \\\
+        -DCMAKE_C_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
+        -DCMAKE_CXX_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
+        -DCMAKE_Fortran_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
+        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \\\
+        -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \\\
+        -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \\\
+        -DLIB_INSTALL_DIR:PATH=%{_libdir} \\\
+        -DSYSCONF_INSTALL_DIR:PATH=%{_sysconfdir} \\\
+%if "%{?_lib}" == "lib64" \
+        %{?_cmake_lib_suffix64} \\\
+%endif \
+        -DSHARE_INSTALL_PREFIX:PATH=%{_datadir}
 
 Version: 2.2.1
-Release: git_%{shortcommit0}.1%{?dist}
+Release: git_%{shortcommit0}.3%{?dist}
 License: GPLv2
 URL: http://www.open-tx.org
 Source0: https://github.com/opentx/opentx/archive/%{commit0}.tar.gz#/opentx-%{shortcommit0}.tar.gz
-Patch1: opentx-cmake-2.2.1.patch
-Patch2: opentx-desktop-2.2.0.patch
+Patch1: opentx-companion_qtlibs_link.patch
 
 BuildRequires: cmake
 BuildRequires: gcc-c++
@@ -31,24 +49,31 @@ settings, editing settings and running radio simulators.
 %prep
 %setup -n opentx-%{commit0}
 %patch1 -p1
-%patch2 -p1
 
 %build
-rm -rf build-taranis-debug
-mkdir build-taranis-debug
-cd build-taranis-debug
-%cmake -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DPCB=X9D+ -DGVARS=YES -DLUA=YES -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS:BOOL=OFF ../
-make %{?_smp_mflags} opentx-companion
-make %{?_smp_mflags} opentx-simulator
+rm -rf build
+mkdir build
+cd build
+for tgt in 9X GRUVIN9X MEGA2560 SKY9X 9XRPRO; do
+  %mycmake -DPCB=$tgt %CMAKE_OPTS ../
+  %make_build libsimulator
+done
+for stmtgt in X7 X9D X9D+ X9E X12S; do
+  %mycmake -DPCB=$stmtgt -DLUA=YES %CMAKE_OPTS ../
+  %make_build libsimulator
+done
+%make_build companion22 simulator22
 
 %install
-make -C build-taranis-debug install DESTDIR=%{buildroot}
+cd build
+%mycmake %CMAKE_OPTS ../
+%make_install
 
 %files
 %defattr(-,root,root,-)
-%{_bindir}/opentx-companion
-%{_bindir}/opentx-simulator
-%{_libdir}/opentx-companion-22/
+%{_bindir}/companion22
+%{_bindir}/simulator22
+%{_libdir}/companion22/
 %{_prefix}/lib/udev/rules.d/*
 %{_datadir}/applications/*
 %{_datadir}/icons/hicolor/*
