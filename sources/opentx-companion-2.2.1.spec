@@ -3,29 +3,10 @@ Name: opentx-companion
 
 %global commit0 b55b68f191cfa22dee396ee2842e9fb836d9664f
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
-%global CMAKE_OPTS -DSIMULATOR_INSTALL_PREFIX=/usr -DFIRMWARE_TARGET=NO -DGVARS=YES -DHELI=YES -DALLOW_NIGHTLY_BUILDS=NO -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DVERSION_SUFFIX= -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug
-%global mycmake \
-  CFLAGS="${CFLAGS:-%optflags}" ; export CFLAGS ; \
-  CXXFLAGS="${CXXFLAGS:-%optflags}" ; export CXXFLAGS ; \
-  FFLAGS="${FFLAGS:-%optflags%{?_fmoddir: -I%_fmoddir}}" ; export FFLAGS ; \
-  FCFLAGS="${FCFLAGS:-%optflags%{?_fmoddir: -I%_fmoddir}}" ; export FCFLAGS ; \
-  %{?__global_ldflags:LDFLAGS="${LDFLAGS:-%__global_ldflags}" ; export LDFLAGS ;} \
-  %__cmake \\\
-        -DCMAKE_C_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
-        -DCMAKE_CXX_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
-        -DCMAKE_Fortran_FLAGS_RELEASE:STRING="-DNDEBUG" \\\
-        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \\\
-        -DCMAKE_INSTALL_PREFIX:PATH=%{_prefix} \\\
-        -DINCLUDE_INSTALL_DIR:PATH=%{_includedir} \\\
-        -DLIB_INSTALL_DIR:PATH=%{_libdir} \\\
-        -DSYSCONF_INSTALL_DIR:PATH=%{_sysconfdir} \\\
-%if "%{?_lib}" == "lib64" \
-        %{?_cmake_lib_suffix64} \\\
-%endif \
-        -DSHARE_INSTALL_PREFIX:PATH=%{_datadir}
+%global CMAKE_OPTS -DSIMULATOR_INSTALL_PREFIX=/usr -DFIRMWARE_TARGET=NO -DGVARS=YES -DHELI=YES -DALLOW_NIGHTLY_BUILDS=NO -DPYTHON_EXECUTABLE:FILEPATH=/usr/bin/python3 -DVERSION_SUFFIX= -DDEBUG=YES -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS:BOOL=OFF
 
 Version: 2.2.1
-Release: git_%{shortcommit0}.3%{?dist}
+Release: git_%{shortcommit0}.4%{?dist}
 License: GPLv2
 URL: http://www.open-tx.org
 Source0: https://github.com/opentx/opentx/archive/%{commit0}.tar.gz#/opentx-%{shortcommit0}.tar.gz
@@ -55,18 +36,18 @@ rm -rf build
 mkdir build
 cd build
 for tgt in 9X GRUVIN9X MEGA2560 SKY9X 9XRPRO; do
-  %mycmake -DPCB=$tgt %CMAKE_OPTS ../
+  %cmake -DPCB=$tgt %CMAKE_OPTS ../
   %make_build libsimulator
 done
 for stmtgt in X7 X9D X9D+ X9E X12S; do
-  %mycmake -DPCB=$stmtgt -DLUA=YES %CMAKE_OPTS ../
+  %cmake -DPCB=$stmtgt -DLUA=YES %CMAKE_OPTS ../
   %make_build libsimulator
 done
 %make_build companion22 simulator22
 
 %install
 cd build
-%mycmake %CMAKE_OPTS ../
+%cmake %CMAKE_OPTS ../
 %make_install
 
 %files
@@ -79,6 +60,9 @@ cd build
 %{_datadir}/icons/hicolor/*
 
 %changelog
+* Tue Mar 20 2018 J <j@roxor.me> - 2.2.1-4
+- do not use custom cmake macro, just override BUILD_SHARED_LIBS:BOOL=OFF
+
 * Tue Mar 20 2018 J <j@roxor.me> - 2.2.1-3
 - update to upstream 2.2.1 tag
 
