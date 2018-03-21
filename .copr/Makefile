@@ -15,9 +15,10 @@ ifndef srpm
 	MOCK_SRPM := $(MOCK_SRPM_RESULT_DIR)/*.src.rpm
 endif
 
-distros := epel-7 fedora-26 fedora-27 fedora-28 fedora-rawhide
+distros := fedora-26 fedora-27 fedora-28 fedora-rawhide
 arches := x86_64 i386
 rpm_targets := $(foreach a,$(arches),$(patsubst %,%-$a-rpm,$(distros)))
+rpm_clean_targets := $(foreach a,$(arches),$(patsubst %,%-$a-clean,$(distros)))
 
 .PHONY: fetch
 fetch:
@@ -39,8 +40,16 @@ dist: fetch srpm
 .PHONY: rpm-all
 rpm-all: $(rpm_targets)
 
+#.PHONY: $(rpm_clean_targets)
+%-clean:
+	mock --rebuild -r $* --clean
+	mock -r $* --scrub=chroot
+
+.PHONY: clean-all
+clean-all: $(rpm_clean_targets)
+
 .PHONY: clean
-clean:
+clean: clean-all
 	rm -rf $(MOCK_RESULT_DIR) results
 
 .PHONY: distclean
