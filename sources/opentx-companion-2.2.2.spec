@@ -38,10 +38,20 @@ for tgt in 9X GRUVIN9X MEGA2560 SKY9X 9XRPRO 9X2561; do
   %cmake -DPCB=$tgt %CMAKE_OPTS ../
   %make_build libsimulator
 done
-for stmtgt in X7 X12S; do
+for stmtgt in X7; do
   %cmake -DPCB=$stmtgt -DLUA=YES %CMAKE_OPTS ../
   %make_build libsimulator
 done
+# X12S build is buggered on i386
+# /builddir/build/BUILD/opentx-a5de713b733cd56a763df1bccfc1ae13ab6da6b2/radio/src/thirdparty/STM32F4xx_DSP_StdPeriph_Lib_V1.4.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include/../../../../Include/core_cm4.h:222:21: error: expected primary-expression before 'volatile'
+# #define   __I     volatile             /*!< Defines 'read only' permissions                 */
+if [ %_arch != i386 ]; then
+  for stmtgt in X12S; do
+    %cmake -DPCB=$stmtgt -DLUA=YES %CMAKE_OPTS ../
+    %make_build libsimulator
+  done
+fi
+
 %make_build companion22 simulator22
 
 %install
