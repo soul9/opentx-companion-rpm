@@ -1,3 +1,7 @@
+COMMIT := a5de713b733cd56a763df1bccfc1ae13ab6da6b2
+SHORTCOMMIT := $(shell c="$(COMMIT)"; echo $${c:0:7})
+OPENTX_VER := 2.2.2
+
 MOCK_RESULT_DIR := $(outdir)
 MOCK_SRPM_RESULT_DIR := $(outdir)
 ifndef outdir
@@ -12,37 +16,43 @@ endif
 
 MOCK_SRPM := $(srpm)
 ifndef srpm
-	MOCK_SRPM := $(MOCK_SRPM_RESULT_DIR)/*.src.rpm
+	MOCK_SRPM :=  $(MOCK_SRPM_RESULT_DIR)/opentx-companion-$(OPENTX_VER)-git_$(SHORTCOMMIT).5.fc$(shell rpm -E %fedora).src.rpm
 endif
 
-distros := fedora-26 fedora-27 fedora-28 fedora-rawhide
+MOCK_DEBUG := "--no-cleanup-after --no-clean"
+ifndef DEBUG
+	MOCK_DEBUG := ""
+endif
+
+distros := fedora-26 fedora-27 fedora-28 fedora-29 fedora-rawhide
 arches := x86_64 i386
 rpm_targets := $(foreach a,$(arches),$(patsubst %,%-$a-rpm,$(distros)))
 rpm_clean_targets := $(foreach a,$(arches),$(patsubst %,%-$a-clean,$(distros)))
 
 MOCK_DISTGZ := $(distgz)
 ifndef distgz
-	MOCK_DISTGZ := sources/opentx-*.tar.gz
+	MOCK_DISTGZ := sources/opentx-$(SHORTCOMMIT).tar.gz
 endif
 
 .PHONY: fetch
 fetch: $(MOCK_DISTGZ)
 
 $(MOCK_DISTGZ):
-	spectool -g -C $(MOCK_SOURCESDIR) $(MOCK_SOURCESDIR)/opentx-companion-2.2.1.spec
+	spectool -g -C $(MOCK_SOURCESDIR) $(MOCK_SOURCESDIR)/opentx-companion-$(OPENTX_VER).spec
 
 .PHONY: srpm
 srpm: fetch $(MOCK_SRPM)
 
 $(MOCK_SRPM):
-	mock --buildsrpm --spec=$(MOCK_SOURCESDIR)/opentx-companion-2.2.1.spec --sources=$(MOCK_SOURCESDIR) --resultdir=$(MOCK_SRPM_RESULT_DIR)
+	mock --buildsrpm $(MOCK_DEBUG) --spec=$(MOCK_SOURCESDIR)/opentx-companion-$(OPENTX_VER).spec --sources=$(MOCK_SOURCESDIR) --resultdir=$(MOCK_SRPM_RESULT_DIR)
 
 .PHONY: dist
 dist: fetch srpm
 
 #.PHONY: $(rpm_targets)
+.PHONY: %-rpm
 %-rpm: srpm
-	mock --rebuild -r $* --resultdir=$(MOCK_RESULT_DIR) $(MOCK_SRPM)
+	mock --rebuild -r $* $(MOCK_DEBUG) --resultdir=$(MOCK_RESULT_DIR) $(MOCK_SRPM)
 
 .PHONY: rpm-all
 rpm-all: $(rpm_targets)
@@ -61,10 +71,14 @@ clean: clean-all
 
 .PHONY: distclean
 distclean:
-	rm -rf $(MOCK_SOURCESDIR)/opentx-b55b68f.tar.gz
+	rm -rf $(MOCK_DISTGZ)
+
+.PHONY: srpmclean
+srpmclean:
+	rm -fr $(MOCK_SRPM)
 
 .PHONY: cleanall
-cleanall: clean distclean
+cleanall: clean distclean srpmclean
 
 .PHONY: distall
 distall: dist rpm-all
