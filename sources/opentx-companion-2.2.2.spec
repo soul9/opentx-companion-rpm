@@ -14,7 +14,7 @@ Patch1: opentx-companion_qtlibs_link.patch
 
 BuildRequires: cmake
 BuildRequires: gcc-c++
-BuildRequires: qt5-devel
+BuildRequires: qt-devel
 BuildRequires: fox-devel
 BuildRequires: SDL-devel
 BuildRequires: python3-qt5
